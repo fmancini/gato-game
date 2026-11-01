@@ -1,5 +1,4 @@
 import AppKit
-import SwiftData
 import GatoKit
 
 /// Self-test for agents: runs the app's real functions on a test store,
@@ -25,22 +24,21 @@ enum SelfTest {
         }
         Task {
             try? await Task.sleep(for: .seconds(0.5))
-            let context = model.container.mainContext
-            func items() -> [Item] { (try? context.fetch(FetchDescriptor<Item>())) ?? [] }
+            model.sidebar = .twoPlayers
+            model.tap(0); model.tap(3); model.tap(1); model.tap(4); model.tap(2)
+            check("X wins the top row", model.board.winner == .x)
+            check("score counts the win", model.scoreX == 1)
+            model.tap(8)
+            check("no moves after the game ends", model.board.cells[8] == nil)
+            model.newGame()
+            check("new game clears the board", model.board.emptyCells.count == 9)
+            check("the first player alternates", model.turn == .o)
 
-            let before = items().count
-            model.addItem()
-            check("New Item adds one item", items().count == before + 1)
-            check("the new item is selected", model.selection != nil)
-
-            if let item = items().first(where: { $0.id == model.selection }) {
-                item.isStarred.toggle()
-                check("starring an item marks it starred", item.isStarred)
-                context.delete(item)
-                try? context.save()
-                check("deleting the item removes it", items().count == before)
-            }
-            check("titles are cleaned", ItemTitle.clean("  Buy   milk ") == "Buy milk")
+            model.sidebar = .computer
+            check("switching mode resets the score", model.scoreX == 0)
+            model.tap(4)
+            try? await Task.sleep(for: .seconds(1))
+            check("the computer answers", model.board.emptyCells.count == 7)
 
             print(failures == 0 ? "SELFTEST PASS \(count) checks" : "SELFTEST FAIL \(failures) of \(count) checks")
             finish(code: failures == 0 ? 0 : 1)

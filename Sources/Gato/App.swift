@@ -1,12 +1,10 @@
 import AppKit
-import SwiftData
 import SwiftUI
 
 // Gato
 //   Gato                      the app
 //   APP_STORE=<file> Gato     use another database (tests, experiments)
 //   APP_SNAPSHOT=<dir> Gato   save a PNG of every sidebar page and Settings tab in light and dark mode, then quit
-//   APP_SEED=1 Gato           fill an empty /tmp store with sample items (tools/snap.sh)
 //   Gato --selftest           run the self-test on a /tmp store and quit with 0 or 1 (tools/selftest.sh)
 //   APP_ACCENT=<id> Gato      run with another accent from Theme.all (UI/Theme.swift)
 //   APP_GRID=1 Gato           draw the 8 pt grid and the layout probes over the window
@@ -14,7 +12,7 @@ import SwiftUI
 @main
 struct GatoApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @State private var model = AppModel(container: Store.makeContainer())
+    @State private var model = AppModel()
 
     var body: some Scene {
         Window("Gato", id: "main") {
@@ -22,17 +20,18 @@ struct GatoApp: App {
                 .environment(model)
                 .themed()
                 .overlay { if GridOverlay.enabled { GridOverlay() } }
-                .frame(minWidth: 760, minHeight: 480)
+                .frame(minWidth: 620, minHeight: 600)
         }
-        .modelContainer(model.container)
-        .defaultSize(width: 1100, height: 720)
+        .defaultSize(width: 820, height: 680)
         .windowToolbarStyle(.unified)
         .commands {
             SidebarCommands()
             ToolbarCommands()
             CommandGroup(replacing: .newItem) {
-                Button("New Item") { model.addItem() }
+                Button("Nueva partida") { model.newGame() }
                     .keyboardShortcut("n")
+                Button("Reiniciar marcador") { model.resetScores() }
+                    .keyboardShortcut("r")
             }
         }
 
@@ -60,27 +59,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Where the data lives: ~/Library/Application Support/Gato/Gato.store
+/// Settings are in UserDefaults; this only tells test runs apart from real ones.
 enum Store {
-    /// True when APP_STORE points somewhere else (tests, snapshots, seed data).
+    /// True when APP_STORE points somewhere else (tests, snapshots).
     static var isOverridden: Bool {
         !(ProcessInfo.processInfo.environment["APP_STORE"] ?? "").isEmpty
-    }
-
-    static var url: URL {
-        if let path = ProcessInfo.processInfo.environment["APP_STORE"], !path.isEmpty {
-            return URL(fileURLWithPath: path)
-        }
-        let dir = URL.applicationSupportDirectory.appending(path: "Gato", directoryHint: .isDirectory)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appending(path: "Gato.store")
-    }
-
-    static func makeContainer() -> ModelContainer {
-        do {
-            return try ModelContainer(for: Item.self, configurations: ModelConfiguration(url: url))
-        } catch {
-            fatalError("Could not open the database at \(url.path): \(error)")
-        }
     }
 }

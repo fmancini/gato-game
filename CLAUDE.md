@@ -1,7 +1,7 @@
 # Gato
 
-A native macOS app in SwiftUI. It runs on this Mac only, with a local
-SwiftData database and no server.
+El Gato (tic-tac-toe): a native macOS app in SwiftUI. It runs on this Mac only, with no
+server and no database.
 
 ## Layout
 

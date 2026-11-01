@@ -34,6 +34,7 @@ enum Snapshot {
                 NSApp.appearance = NSAppearance(named: mode == "light" ? .aqua : .darkAqua)
                 for page in SidebarItem.allCases where only?.contains(page.rawValue) ?? true {
                     model.sidebar = page
+                    model.tap(4); model.tap(0)
                     try? await Task.sleep(for: .seconds(0.8))
                     capture(to: "\(dir)/\(page.rawValue)-\(mode).png")
                 }

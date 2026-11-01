@@ -1,3 +1,4 @@
+import GatoKit
 import SwiftUI
 
 /// The Settings window (Command-Comma). One tab per topic, at most about
@@ -54,11 +55,14 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 }
 
 struct GeneralSettings: View {
-    @AppStorage("confirmDelete") private var confirmDelete = true
+    @AppStorage("difficulty") private var difficulty = Difficulty.hard.rawValue
 
     var body: some View {
-        Section("Items") {
-            Toggle("Ask before deleting items", isOn: $confirmDelete)
+        Section("Computadora") {
+            Picker("Dificultad", selection: $difficulty) {
+                Text("Fácil").tag(Difficulty.easy.rawValue)
+                Text("Difícil (imbatible)").tag(Difficulty.hard.rawValue)
+            }
         }
     }
 }
